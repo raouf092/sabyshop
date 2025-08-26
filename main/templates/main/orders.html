@@ -1,0 +1,152 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Détails du Produit{% endblock %}
+
+{% block content %}
+<style>
+  .product-container {
+    display: flex;
+    gap: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+  }
+  .product-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    flex: 1;
+  }
+  .product-images img {
+    width: calc(50% - 10px);
+    height: auto;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .product-images img:hover {
+    transform: scale(1.05);
+  }
+  .product-details {
+    min-width: 450px;
+    height: auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .product-details h1 { font-size: 24px; margin-bottom: 10px; }
+  .product-details p { font-size: 16px; margin-bottom: 10px; }
+  .size-selector { margin-top: 20px; }
+  .size-selector label { font-weight: bold; display: block; margin-bottom: 5px; }
+  .size-selector select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+  .add-to-cart {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #ff6f61;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  @media(max-width:900px){
+    .product-container{flex-direction:column;width:95%;}
+    .product-details{min-width:unset;width:100%;}
+    .product-images img{width:100%;max-width:400px;}
+  }
+</style>
+
+<div class="product-container">
+  {% if article.image %}
+  <div class="product-images">
+    <img src="{{ article.image.url }}" alt="{{ article.titre }}" loading="lazy" />
+  </div>
+  {% endif %}
+
+  <div class="product-details">
+    <h1>{{ article.titre }}</h1>
+    <p><strong>Prix :</strong> {{ article.prix }} DA</p>
+    {% if article.couleur %}
+    <p><strong>Couleur :</strong> {{ article.couleur }}</p>
+    {% endif %}
+    <p><strong>Référence :</strong> {{ article.id }}</p>
+
+    <div class="size-selector">
+      <label for="size">Choisissez la taille :</label>
+      <select id="size">
+        <option value="S">S</option>
+        <option value="M" selected>M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+      </select>
+    </div>
+
+    <button type="button" class="add-to-cart" id="addToCartBtn">
+      Ajouter au panier
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const sizeSelect = document.getElementById('size');
+    let isProcessing = false;
+
+    addToCartBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        if(isProcessing) return;
+        isProcessing = true;
+
+        const selectedSize = sizeSelect.value;
+        const productId = parseInt('{{ article.id }}');
+        const productName = '{{ article.titre|escapejs }}';
+        const price = parseFloat('{{ article.prix }}');
+        const image = {% if article.image %}'{{ article.image.url }}'{% else %}''{% endif %};
+
+        addToLocalCart(productId, productName, selectedSize, price, image);
+        updateCartCounter();
+
+        setTimeout(()=>{
+            isProcessing = false;
+        }, 500);
+    });
+
+    function addToLocalCart(id,name,size,price,image){
+        let cart = JSON.parse(localStorage.getItem('cart'))||[];
+        const existing = cart.find(item => item.id===id && item.size===size);
+        if(existing){
+            existing.quantity +=1;
+        } else {
+            cart.push({id,name,size,price,image,quantity:1});
+        }
+        localStorage.setItem('cart',JSON.stringify(cart));
+    }
+
+    function updateCartCounter(){
+        const cart = JSON.parse(localStorage.getItem('cart'))||[];
+        const totalItems = cart.reduce((sum,item)=>sum+(item.quantity||0),0);
+        const counters = document.querySelectorAll('#cartCount, .cart-count, .cart-badge');
+        counters.forEach(c=>{
+            c.textContent = totalItems;
+            c.style.display = totalItems>0?'inline':'none';
+        });
+    }
+
+    updateCartCounter();
+    window.addEventListener('storage',()=>updateCartCounter());
+});
+</script>
+{% endblock %}

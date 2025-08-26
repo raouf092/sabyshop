@@ -1,0 +1,33 @@
+<h2>Liste des Commandes</h2>
+
+<table border="1" cellpadding="8" cellspacing="0">
+  <tr>
+    <th>ID</th>
+    <th>Nom</th>
+    <th>Téléphone</th>
+    <th>Articles</th>
+    <th>Date</th>
+  </tr>
+  {% for cmd in commandes %}
+    <tr>
+      <td>{{ cmd.id }}</td>
+      <td>{{ cmd.nom }} {{ cmd.prenom }}</td>
+      <td>{{ cmd.telephone }}</td>
+      <td>
+        {% for ligne in cmd.lignes.all %}
+          {{ ligne.article.titre }}
+          {% if ligne.taille %} - Taille: {{ ligne.taille }}{% endif %}
+          (x{{ ligne.quantite }})
+          <br>
+        {% empty %}
+          <em>Aucun article</em>
+        {% endfor %}
+      </td>
+      <td>{{ cmd.date_commande|date:"d/m/Y H:i" }}</td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="5">Aucune commande trouvée.</td>
+    </tr>
+  {% endfor %}
+</table>

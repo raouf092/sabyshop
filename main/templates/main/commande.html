@@ -1,0 +1,129 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<style>
+    .commande-form {
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .submit-btn {
+        background: #28a745;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+    }
+    .panier-recap {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="commande-form">
+    <h2>Finaliser votre commande</h2>
+    
+    <!-- ✅ Récapitulatif du panier -->
+    <div id="panierRecap" class="panier-recap">
+        <h4>Votre panier :</h4>
+        <div id="panierItems">Chargement...</div>
+    </div>
+
+    <form id="commandeForm" method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="adresse">Adresse :</label>
+            <textarea id="adresse" name="adresse" rows="3" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="telephone">Téléphone :</label>
+            <input type="tel" id="telephone" name="telephone" required>
+        </div>
+        
+        <!-- ✅ Champ caché pour le panier -->
+        <input type="hidden" id="cartData" name="cart_data">
+        
+        <button type="submit" class="submit-btn" onclick="passerCommande();">Confirmer la commande</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Récupérer le panier
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Afficher le récapitulatif
+    const panierItems = document.getElementById('panierItems');
+    if (cart.length > 0) {
+        let html = '';
+        cart.forEach(item => {
+            html += `<div>• ${item.name} - Taille: ${item.size} - ${item.price}€ (x${item.quantity})</div>`;
+        });
+        panierItems.innerHTML = html;
+    } else {
+        panierItems.innerHTML = '<em>Votre panier est vide</em>';
+    }
+    
+    // Mettre les données dans le champ caché
+    const cartDataField = document.getElementById('cartData');
+    cartDataField.value = JSON.stringify(cart);
+    
+    // Vérifier avant soumission
+    document.getElementById('commandeForm').addEventListener('submit', function(e) {
+        if (!cartDataField.value || cartDataField.value === '[]') {
+            alert('Votre panier est vide !');
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+
+// Fonction pour vider le panier au moment de confirmer
+function passerCommande() {
+    // Vide localStorage
+    localStorage.setItem('cart', JSON.stringify([]));
+    
+    // Mettre à jour l'affichage immédiatement
+    const panierItems = document.getElementById('panierItems');
+    panierItems.innerHTML = '<em>Votre panier est vide</em>';
+    
+    // Déclenche l'événement storage pour mise à jour dans le header
+    window.dispatchEvent(new Event('storage'));
+}
+</script>
+{% endblock %}

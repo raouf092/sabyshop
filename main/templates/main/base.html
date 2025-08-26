@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Ma Boutique{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: #111; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; }
+        header a { text-decoration: none; color: inherit; }
+        header button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+
+        /* panneau du panier */
+        #cartPanel { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: white; box-shadow: -2px 0 5px rgba(0,0,0,0.3); transition: right 0.3s ease; display: flex; flex-direction: column; z-index: 1000; }
+        #cartPanel.active { right: 0; }
+        #cartHeader { background: #f5f5f5; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        #cartItems { flex: 1; overflow-y: auto; padding: 10px; }
+        .cartItem { display: flex; align-items: center; border-bottom: 1px solid #ddd; padding: 10px 0; }
+        .cartItem img { width: 60px; height: 60px; object-fit: cover; margin-right: 10px; }
+        .cartItemDetails { flex: 1; }
+        .cartItemDetails p { margin: 3px 0; }
+        .qtyControls { display: flex; align-items: center; gap: 5px; }
+        .qtyControls button { padding: 2px 6px; cursor: pointer; }
+        #cartTotal { padding: 15px; background: #f5f5f5; font-weight: bold; text-align: right; }
+        #checkoutBtn { background: green; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; font-size: 16px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1><a href="/">selsabilshop1</a></h1>
+    <button id="openCart">🛒 Panier (<span id="cartCount">0</span>)</button>
+</header>
+
+{% block content %}{% endblock %}
+
+<!-- panneau du panier -->
+<div id="cartPanel">
+    <div id="cartHeader">
+        <span>Votre Panier</span>
+        <button onclick="toggleCart()">❌</button>
+    </div>
+    <div id="cartItems"></div>
+    <div id="cartTotal">Total: 0 DA</div>
+    <button id="checkoutBtn" onclick="passerCommande()">Passer la commande</button>
+</div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+const cartPanel = document.getElementById('cartPanel');
+const cartCount = document.getElementById('cartCount');
+const cartItems = document.getElementById('cartItems');
+const cartTotal = document.getElementById('cartTotal');
+
+// ouvrir/fermer le panier
+function toggleCart() {
+    cartPanel.classList.toggle('active');
+    renderCart();
+}
+document.getElementById('openCart').addEventListener('click', toggleCart);
+
+// calculer le total du panier
+function calculateCartTotal() {
+    if (!cart || cart.length === 0) return 0;
+    return cart.reduce((total, item) => total + (parseFloat(item.price)||0)*(parseInt(item.quantity)||0), 0);
+}
+
+// afficher le panier
+function renderCart() {
+    cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cartItems.innerHTML = '';
+    if (cart.length > 0) {
+        cart.forEach((item, index) => {
+            const imageUrl = item.image || 'https://via.placeholder.com/60x60';
+            cartItems.innerHTML += `
+                <div class="cartItem">
+                    <img src="${imageUrl}" alt="${item.name}">
+                    <div class="cartItemDetails">
+                        <p><strong>${item.name}</strong></p>
+                        <p>Taille: ${item.size}</p>
+                        <p>${parseFloat(item.price || 0).toFixed(2)} DA</p>
+                        <div class="qtyControls">
+                            <button onclick="changeQty(${index}, -1)">-</button>
+                            <span>${item.quantity || 0}</span>
+                            <button onclick="changeQty(${index}, 1)">+</button>
+                            <button onclick="removeItem(${index})">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        cartItems.innerHTML = '<p style="text-align:center;color:#666;">Votre panier est vide</p>';
+    }
+
+    const totalCount = cart.reduce((sum, i) => sum + (parseInt(i.quantity)||0),0);
+    const totalPrice = calculateCartTotal();
+
+    cartCount.textContent = totalCount;
+    cartTotal.textContent = `Total: ${totalPrice.toFixed(2)} DA`;
+
+    cartCount.style.display = totalCount>0?'inline':'none';
+}
+
+// modifier quantité
+function changeQty(index, delta) {
+    if (cart[index]) {
+        cart[index].quantity = (parseInt(cart[index].quantity)||0)+delta;
+        if(cart[index].quantity <=0) cart.splice(index,1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    }
+}
+
+// supprimer un produit
+function removeItem(index) {
+    cart.splice(index,1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+}
+
+// ajouter un produit
+function addToCart(id,name,size,price,image){
+    cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existing = cart.find(item => item.id==id && item.size===size);
+    if(existing) existing.quantity = (parseInt(existing.quantity)||0)+1;
+    else cart.push({id:parseInt(id),name,size,price:parseFloat(price),image,quantity:1});
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+}
+
+// passer la commande (redirige seulement)
+function passerCommande() {
+    const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+    if(currentCart.length===0){ alert('Votre panier est vide !'); return; }
+    window.location.href = "{% url 'commande' %}";
+}
+
+// vider le panier (appeler après confirmation sur la page commande)
+function clearCart(){
+    cart = [];
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+}
+
+// initialiser
+renderCart();
+window.addEventListener('storage', e => { if(e.key==='cart') renderCart(); });
+</script>
+</body>
+</html>

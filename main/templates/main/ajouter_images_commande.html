@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Ajouter des images pour la commande #{{ commande.id }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>Choisir plusieurs images :</label>
+    <input type="file" name="images" multiple>
+    <br><br>
+    <button type="submit">Ajouter</button>
+</form>
+
+{% endblock %}

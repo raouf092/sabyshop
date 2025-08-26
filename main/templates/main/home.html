@@ -1,0 +1,97 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}FaithStore{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: white;
+        margin: 0;
+        padding: 0;
+    }
+   
+    .container {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 20px;
+        border-radius: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        width: 100%;
+    }
+    li {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-sizing: border-box;
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid #eee;
+        transition: transform 0.3s ease;
+    }
+    li:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    a {
+        text-decoration: none;
+        color: inherit;
+        width: 100%;
+    }
+    img {
+        display: block;
+        margin: 10px auto;
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+    h2 {
+        text-align: center;
+        color: black;
+        margin: 10px 0 5px 0;
+    }
+    p {
+        text-align: center;
+        color:black;
+        margin: 5px 0;
+    }
+</style>
+
+<div class="container">
+    {% if articles %}
+        <ul>
+            {% for article in articles %}
+                <li>
+                    <!-- 🔥 Lien avec l'ID pour afficher la page orders -->
+                    <a href="{% url 'orders' article.id %}">
+                        {% if article.image %}
+                            <img src="{{ article.image.url }}" alt="{{ article.titre }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x300?text=Image+indisponible" alt="Image non disponible">
+                        {% endif %}
+                        <h2>{{ article.titre }}</h2>
+                        <p><strong>{{ article.prix }} DA</strong></p>
+                        <p>{{ article.contenu|truncatewords:15 }}</p>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color: black; text-align: center;">Aucun article publié pour le moment.</p>
+    {% endif %}
+</div>
+{% endblock %}
