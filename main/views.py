@@ -5,11 +5,13 @@ from .models import Article, Commande, CommandeImage, LigneCommande
 
 def is_staff_user(user):
     return user.is_staff
+def product(request):
+    articles = Article.objects.filter(publie=True)
+    return render(request, 'main/product.html', {'articles': articles})
 
 # Page d'accueil avec la liste des articles
 def home(request):
-    articles = Article.objects.filter(publie=True)
-    return render(request, 'main/home.html', {'articles': articles})
+    return render(request, 'main/home.html')
 
 # Formulaire de commande
 def commande(request):

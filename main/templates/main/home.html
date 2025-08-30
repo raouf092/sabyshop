@@ -1,97 +1,78 @@
-{% extends 'main/base.html' %}
+{% extends "main/base.html" %}
 {% load static %}
-
-{% block title %}FaithStore{% endblock %}
 
 {% block content %}
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: white;
-        margin: 0;
-        padding: 0;
-    }
-   
-    .container {
-        max-width: 1200px;
-        margin: 50px auto;
-        padding: 20px;
-        border-radius: 20px;
-        display: flex;
-        justify-content: center;
-    }
-    ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-        width: 100%;
-    }
-    li {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        box-sizing: border-box;
-        width: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border: 1px solid #eee;
-        transition: transform 0.3s ease;
-    }
-    li:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    a {
-        text-decoration: none;
-        color: inherit;
-        width: 100%;
-    }
-    img {
-        display: block;
-        margin: 10px auto;
-        width: 100%;
-        height: 300px;
-        object-fit: cover;
-        border-radius: 10px;
-    }
-    h2 {
-        text-align: center;
-        color: black;
-        margin: 10px 0 5px 0;
-    }
-    p {
-        text-align: center;
-        color:black;
-        margin: 5px 0;
-    }
+  /* Conteneur vidéo plein écran */
+  .hero-video {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .hero-video video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    z-index: -1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    background: rgba(0,0,0,0.35); /* léger voile noir */
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  /* Section produits sous la vidéo */
+  .main-section {
+    padding: 60px 20px;
+    text-align: center;
+  }
 </style>
 
-<div class="container">
-    {% if articles %}
-        <ul>
-            {% for article in articles %}
-                <li>
-                    <!-- 🔥 Lien avec l'ID pour afficher la page orders -->
-                    <a href="{% url 'orders' article.id %}">
-                        {% if article.image %}
-                            <img src="{{ article.image.url }}" alt="{{ article.titre }}">
-                        {% else %}
-                            <img src="https://via.placeholder.com/300x300?text=Image+indisponible" alt="Image non disponible">
-                        {% endif %}
-                        <h2>{{ article.titre }}</h2>
-                        <p><strong>{{ article.prix }} DA</strong></p>
-                        <p>{{ article.contenu|truncatewords:15 }}</p>
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p style="color: black; text-align: center;">Aucun article publié pour le moment.</p>
-    {% endif %}
-</div>
+<!-- 🎥 Section vidéo -->
+<section class="hero-video">
+  <video autoplay muted loop playsinline>
+    <source src="{% static 'videos/hero.mp4' %}" type="video/mp4">
+    Ton navigateur ne supporte pas la vidéo.
+  </video>
+
+  <div class="hero-content">
+    <h1>Bienvenue sur notre boutique</h1>
+    <p>Découvrez nos articles exclusifs</p>
+    <a href="{% url 'product' %}" class="btn btn-light">Voir les produits</a>
+  </div>
+</section>
+
+<!-- Section produits sous la vidéo -->
+<section class="main-section">
+  <h2>Nos Produits</h2>
+  <p>Explorez notre collection ci-dessous.</p>
+
+  <div class="product-grid">
+    {% for article in articles %}
+      <div class="product-card">
+        <img src="{{ article.image.url }}" alt="{{ article.titre }}">
+        <h3>{{ article.titre }}</h3>
+        <p>{{ article.prix }} €</p>
+      </div>
+    {% empty %}
+      <p>Aucun produit disponible.</p>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}
